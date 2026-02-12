@@ -1,0 +1,27 @@
+{
+  "name": "myst-table-filter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "esbuild src/index.tsx --bundle --outfile=dist/widget.mjs --format=esm",
+    "test": "npm run build:docs && vitest run"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@myst-theme/providers": "^1.1.1",
+    "myst-common": "^1.9.4",
+    "myst-to-react": "^1.1.1",
+    "react": "^18.2.1",
+    "react-dom": "^18.2.1",
+    "unist-util-filter": "^5.0.1",
+    "unist-util-select": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/mdast": "^4.0.4",
+    "@types/react": "^18.2.1",
+    "@types/react-dom": "^18.2.1",
+    "esbuild": "0.25.4"
+  }
+}
