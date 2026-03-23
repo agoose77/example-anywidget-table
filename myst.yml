@@ -11,6 +11,7 @@ project:
   toc:
     - file: content/main.md
     - file: content/cards.md
+    - file: content/gallery.md
   plugins:
     - plugin.mjs
 site:
