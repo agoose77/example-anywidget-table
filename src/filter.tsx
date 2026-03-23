@@ -106,20 +106,13 @@ function App({ model }: { model: any }) {
   const initialFilters = useMemo(() => {
     // Compute categories from classes
     const categoryItems = new Map<string, Set<string>>();
-    for (const node of maybeFilterNodes) {
-      for (const [key, value] of parseKeyValueClass(
-        CATEGORY_PREFIX,
-        (node as any).class ?? "",
-      )) {
-        categoryItems.getOrInsertComputed(key, setFactory).add(value);
-      }
-    }
     const tagItems = new Map<string, Set<string>>();
     for (const node of maybeFilterNodes) {
-      for (const [key, value] of parseKeyValueClass(
-        TAG_PREFIX,
-        (node as any).class ?? "",
-      )) {
+      const cls = (node as any).class ?? "";
+      for (const [key, value] of parseKeyValueClass(CATEGORY_PREFIX, cls)) {
+        categoryItems.getOrInsertComputed(key, setFactory).add(value);
+      }
+      for (const [key, value] of parseKeyValueClass(TAG_PREFIX, cls)) {
         tagItems.getOrInsertComputed(key, setFactory).add(value);
       }
     }
