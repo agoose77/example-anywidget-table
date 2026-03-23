@@ -17,7 +17,7 @@ const plugin = {
 
           tableNode.type = "anywidget";
           tableNode.esm = "http://localhost:5000/widget.mjs";
-          tableNode.json = {
+          tableNode.model = {
             ast,
           };
         });
