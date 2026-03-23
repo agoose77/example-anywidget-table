@@ -10,6 +10,7 @@ project:
   # To autogenerate a Table of Contents, run "myst init --write-toc"
   toc:
     - file: content/main.md
+    - file: content/cards.md
   plugins:
     - plugin.mjs
 site:
