@@ -4,19 +4,21 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "esbuild src/index.tsx --bundle --outfile=dist/widget.mjs --format=esm",
+    "build": "node build.mjs",
     "test": "npm run build:docs && vitest run"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@myst-theme/providers": "^1.1.1",
+    "bootstrap": "^5.3.8",
     "myst-common": "^1.9.4",
-    "myst-to-react": "^1.1.1",
     "react": "^18.2.1",
+    "react-bootstrap": "^2.10.10",
     "react-dom": "^18.2.1",
     "unist-util-filter": "^5.0.1",
-    "unist-util-select": "^5.1.0"
+    "unist-util-remove": "^4.0.0",
+    "unist-util-select": "^5.1.0",
+    "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {
     "@types/mdast": "^4.0.4",
