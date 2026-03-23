@@ -8,7 +8,7 @@ import React, { useDeferredValue, useState, useMemo, useEffect } from "react";
 
 function matchesSearch(tableRow: TableRow, query: string): boolean {
   const corpus = toText(tableRow);
-  return corpus.includes(query);
+  return corpus.toLowerCase().includes(query.toLowerCase());
 }
 
 function App({ model }: { model: any }) {
