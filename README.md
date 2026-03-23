@@ -3,3 +3,7 @@
 This repo demonstrates an ESM anywidget that adds a dynamic view over AST. A MyST transform plugin replaces `table` nodes with `anywidget` nodes that render tables.
 
 In future, we might establish a `children` interface to anywidget models that makes it possible to drop the MyST renderer altogether!
+
+## Usage
+1. Build the widget with `npm run build`
+2. Run the MyST project with `myst start`
