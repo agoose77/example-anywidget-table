@@ -102,7 +102,7 @@ function buildFilters(
   for (const [name, items] of filterItems) {
     const state = {};
     for (const item of items) {
-      state[item] = true;
+      state[item] = false;
     }
     filters[name] = { mutuallyExclusive: categorical.includes(name), state };
   }
@@ -111,14 +111,20 @@ function buildFilters(
 }
 
 function buildRemovalSelector(prefix: string, filters: Filters): string {
-  const classes = Object.entries(filters).flatMap(([groupName, group]) =>
-    Object.entries(group.state)
-      // Take inactive filters
-      .filter(([name, value]) => !value)
-      // Build string
-      .map(([name]) => `:root[class*=${prefix}${groupName}-${name}]`),
-  );
-  return classes.join(",") || ":not(*)";
+  const groupSelectors = Object.entries(filters).map(([groupName, group]) => {
+    const groupSelector =
+      Object.entries(group.state)
+        // Take active selections
+        .filter(([name, value]) => value)
+        // Build string
+        .map(([name]) => `[class*=${prefix}${groupName}-${name}]`)
+        .join(", ") || "*";
+
+    // Treat no selectors as wildcard
+    return `:is(${groupSelector})`;
+  });
+  const selector = groupSelectors.join("");
+  return `:root[class*=${prefix}]:not(${selector})`;
 }
 
 function FilterForm({
@@ -133,9 +139,9 @@ function FilterForm({
   const components: JSX.Element[] = [];
 
   for (const [name, group] of Object.entries(filters)) {
+    const noneChecked = !Object.values(group.state).some((x) => x);
     const items = Object.keys(group.state);
     if (group.mutuallyExclusive) {
-      const allChecked = !Object.values(group.state).some((x) => !x);
       components.push(
         <div>
           <span style={{ marginRight: "1em" }}>{name}</span>
@@ -145,8 +151,8 @@ function FilterForm({
             type="radio"
             label="all"
             key="all"
-            checked={allChecked}
-            onChange={() => onFilterGroupChanged(name, true)}
+            checked={noneChecked}
+            onChange={() => onFilterGroupChanged(name, false)}
           />
           {...Array.from(items).map((item) => (
             <Form.Check
@@ -155,7 +161,7 @@ function FilterForm({
               type="radio"
               label={item}
               key={item}
-              checked={group.state[item] && !allChecked}
+              checked={group.state[item] && !noneChecked}
               onChange={(e) => onFilterChanged(name, item, e.target.checked)}
             />
           ))}
