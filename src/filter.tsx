@@ -8,8 +8,11 @@ import Form from "react-bootstrap/Form";
 
 import React, { useCallback, useMemo, useReducer, useEffect } from "react";
 
+/**
+ * Parse a class name of the form "xxx yyy zzz" into an array of key-value tuples
+ */
 function parseKeyValueClass(prefix: string, cls: string): [string, string][] {
-  const pattern = new RegExp(`${prefix}-([^-]+)-(.*)`);
+  const pattern = new RegExp(`${prefix}([^-]+)-(.*)`);
   const tokens = cls.split(/\s+/);
   return tokens
     .map((token) => {
@@ -83,6 +86,10 @@ function buildRemovalSelector(filters: Filters): string {
   return classes.join(",") || ":not(*)";
 }
 
+const FILTER_PREFIX = "flt-";
+const CATEGORY_PREFIX = `${FILTER_PREFIX}cat-`;
+const TAG_PREFIX = `${FILTER_PREFIX}tag-`;
+
 function App({ model }: { model: any }) {
   const initialAST = useMemo(
     () => ({ type: "root", children: model.get("myst#children") }),
@@ -92,7 +99,7 @@ function App({ model }: { model: any }) {
   const setFactory = () => new Set();
 
   const maybeFilterNodes = useMemo(
-    () => selectAll("[class*=flt-]", initialAST),
+    () => selectAll(`[class*=${FILTER_PREFIX}]`, initialAST),
     [initialAST],
   );
 
@@ -101,7 +108,7 @@ function App({ model }: { model: any }) {
     const categoryItems = new Map<string, Set<string>>();
     for (const node of maybeFilterNodes) {
       for (const [key, value] of parseKeyValueClass(
-        "flt-cat",
+        CATEGORY_PREFIX,
         (node as any).class ?? "",
       )) {
         categoryItems.getOrInsertComputed(key, setFactory).add(value);
@@ -110,7 +117,7 @@ function App({ model }: { model: any }) {
     const tagItems = new Map<string, Set<string>>();
     for (const node of maybeFilterNodes) {
       for (const [key, value] of parseKeyValueClass(
-        "flt-tag",
+        TAG_PREFIX,
         (node as any).class ?? "",
       )) {
         tagItems.getOrInsertComputed(key, setFactory).add(value);
