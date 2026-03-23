@@ -28,7 +28,7 @@ function App({ model }: { model: any }) {
     model.set("myst#children", filteredAST);
   }, [initialAST, deferredText]);
   return (
-    <input placeholder="search" onChange={(e) => setText(e.target.value)} />
+    <input placeholder="Search" onChange={(e) => setText(e.target.value)} />
   );
 }
 
