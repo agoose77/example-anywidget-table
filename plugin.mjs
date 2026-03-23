@@ -16,10 +16,8 @@ const plugin = {
           }
 
           tableNode.type = "anywidget";
-          tableNode.esm = "/dist/widget.mjs";
-          tableNode.model = {
-            ast,
-          };
+          tableNode.model = {};
+          tableNode.children = [ast];
         });
       },
     },
