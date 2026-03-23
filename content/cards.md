@@ -1,24 +1,28 @@
 # Cards Example
 
+:::::::{div}
+:label: a-thing
+
 ::::::{filterable}
+:categorical: colour
 
 :::::{grid}
 
-::::{div .flt-cat-domain-sky .flt-tag-colour-blue}
+::::{div .flt-domain-sky .flt-colour-blue}
 :::{card}
 :footer: Blue
 The Sky
 :::
 ::::
 
-::::{div .flt-cat-domain-land .flt-tag-colour-yellow}
+::::{div .flt-domain-land .flt-colour-yellow}
 :::{card}
 :footer: Yellow
 A Banana
 :::
 ::::
 
-::::{div .flt-cat-domain-sea .flt-tag-colour-blue}
+::::{div .flt-domain-sea .flt-colour-blue}
 :::{card}
 :footer: Blue
 The Ocean
@@ -27,3 +31,6 @@ The Ocean
 
 :::::
 ::::::
+:::::::
+
+See also @a-thing

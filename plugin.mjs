@@ -4,13 +4,22 @@ const filterDirective = {
   name: "filterable",
   doc: "A filtering directive",
   body: { type: "myst", doc: "The content to filter." },
+  options: {
+    categorical: {
+      type: String,
+      doc: "List of whitespace-separated categories.",
+    },
+  },
   run(data) {
+    const categorical = (data.options.categorical || "")
+      .split(/\s+/)
+      .filter((item) => !!item);
     return [
       {
         type: "anywidget",
         esm: "/dist/filter.mjs",
         css: "/dist/filter.css",
-        model: {},
+        model: { categorical },
         children: data.body,
       },
     ];
@@ -30,9 +39,7 @@ const searchDirective = {
         type: "anywidget",
         esm: "/dist/search.mjs",
         css: "/dist/search.css",
-        model: {
-          selector,
-        },
+        model: { selector },
         children: data.body,
       },
     ];

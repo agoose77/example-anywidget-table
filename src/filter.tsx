@@ -10,6 +10,9 @@ import React, { useCallback, useMemo, useReducer, useEffect } from "react";
 
 /**
  * Parse a class name of the form "xxx yyy zzz" into an array of key-value tuples
+ *
+ * @param prefx prefix for class name components of the form <prefix>-<class>-<name>
+ * @param cls class name
  */
 function parseKeyValueClass(prefix: string, cls: string): [string, string][] {
   const pattern = new RegExp(`${prefix}([^-]+)-(.*)`);
@@ -25,9 +28,13 @@ function parseKeyValueClass(prefix: string, cls: string): [string, string][] {
     })
     .filter((item) => item !== undefined);
 }
+
+/**
+ * A set of filter options belonging to the same group
+ */
 type FilterGroup = {
   state: { [name: string]: boolean };
-  kind: "category" | "tag";
+  mutuallyExclusive?: boolean;
 };
 type Filters = {
   [group: string]: FilterGroup;
@@ -47,11 +54,10 @@ type Action =
     };
 
 function filtersReducer(filters: Filters, action: Action) {
-  console.log(action);
   switch (action.type) {
     case "set-filter": {
       const nextGroup = structuredClone(filters[action.group]);
-      if (nextGroup.kind === "category") {
+      if (nextGroup.mutuallyExclusive) {
         for (const key of Object.keys(nextGroup.state)) {
           nextGroup.state[key] = false;
         }
@@ -72,29 +78,27 @@ function filtersReducer(filters: Filters, action: Action) {
   }
 }
 
+const FILTER_PREFIX = "flt-";
+
 function buildRemovalSelector(filters: Filters): string {
   const classes = Object.entries(filters).flatMap(([groupName, group]) =>
     Object.entries(group.state)
       // Take inactive filters
       .filter(([name, value]) => !value)
       // Build string
-      .map(
-        ([name]) =>
-          `:root[class*=flt-${group.kind === "category" ? "cat" : "tag"}-${groupName}-${name}]`,
-      ),
+      .map(([name]) => `:root[class*=${FILTER_PREFIX}${groupName}-${name}]`),
   );
   return classes.join(",") || ":not(*)";
 }
-
-const FILTER_PREFIX = "flt-";
-const CATEGORY_PREFIX = `${FILTER_PREFIX}cat-`;
-const TAG_PREFIX = `${FILTER_PREFIX}tag-`;
 
 function App({ model }: { model: any }) {
   const initialAST = useMemo(
     () => ({ type: "root", children: model.get("myst#children") }),
     [model],
   );
+
+  const categorical = (model.get("categorical") as string[] | undefined) ?? [];
+
   // Array of [key, value] tuples
   const setFactory = () => new Set();
 
@@ -105,34 +109,21 @@ function App({ model }: { model: any }) {
 
   const initialFilters = useMemo(() => {
     // Compute categories from classes
-    const categoryItems = new Map<string, Set<string>>();
-    const tagItems = new Map<string, Set<string>>();
+    const filterItems = new Map<string, Set<string>>();
     for (const node of maybeFilterNodes) {
       const cls = (node as any).class ?? "";
-      for (const [key, value] of parseKeyValueClass(CATEGORY_PREFIX, cls)) {
-        categoryItems.getOrInsertComputed(key, setFactory).add(value);
-      }
-      for (const [key, value] of parseKeyValueClass(TAG_PREFIX, cls)) {
-        tagItems.getOrInsertComputed(key, setFactory).add(value);
+      for (const [key, value] of parseKeyValueClass(FILTER_PREFIX, cls)) {
+        filterItems.getOrInsertComputed(key, setFactory).add(value);
       }
     }
 
     const filters: Filters = {};
-    for (const [name, items] of categoryItems) {
-      const state = {};
-      let first = true;
-      for (const item of items) {
-        state[item] = first;
-        first = false;
-      }
-      filters[name] = { kind: "category", state };
-    }
-    for (const [name, items] of tagItems) {
+    for (const [name, items] of filterItems) {
       const state = {};
       for (const item of items) {
         state[item] = true;
       }
-      filters[name] = { kind: "tag", state };
+      filters[name] = { mutuallyExclusive: categorical.includes(name), state };
     }
 
     return filters;
@@ -184,57 +175,51 @@ function FilterForm({
   const components: JSX.Element[] = [];
 
   for (const [name, group] of Object.entries(filters)) {
-    switch (group.kind) {
-      case "category": {
-        const items = Object.keys(group.state);
-        const allChecked = !Object.values(group.state).some((x) => !x);
-        components.push(
-          <div>
-            <span style={{ marginRight: "1em" }}>{name}</span>
+    const items = Object.keys(group.state);
+    if (group.mutuallyExclusive) {
+      const allChecked = !Object.values(group.state).some((x) => !x);
+      components.push(
+        <div>
+          <span style={{ marginRight: "1em" }}>{name}</span>
+          <Form.Check
+            inline
+            name={name}
+            type="radio"
+            label="all"
+            key="all"
+            checked={allChecked}
+            onChange={() => onFilterGroupChanged(name, true)}
+          />
+          {...Array.from(items).map((item) => (
             <Form.Check
               inline
               name={name}
               type="radio"
-              label="all"
-              key="all"
-              checked={allChecked}
-              onChange={() => onFilterGroupChanged(name, true)}
+              label={item}
+              key={item}
+              checked={group.state[item] && !allChecked}
+              onChange={(e) => onFilterChanged(name, item, e.target.checked)}
             />
-            {...Array.from(items).map((item) => (
-              <Form.Check
-                inline
-                name={name}
-                type="radio"
-                label={item}
-                key={item}
-                checked={group.state[item] && !allChecked}
-                onChange={(e) => onFilterChanged(name, item, e.target.checked)}
-              />
-            ))}
-          </div>,
-        );
-        break;
-      }
-      case "tag": {
-        const items = Object.keys(group.state);
-        components.push(
-          <div>
-            <span style={{ marginRight: "1em" }}>{name}</span>
-            {...Array.from(items).map((item) => (
-              <Form.Check
-                inline
-                name={name}
-                type="switch"
-                label={item}
-                key={item}
-                checked={group.state[item]}
-                onChange={(e) => onFilterChanged(name, item, e.target.checked)}
-              />
-            ))}
-          </div>,
-        );
-        break;
-      }
+          ))}
+        </div>,
+      );
+    } else {
+      components.push(
+        <div>
+          <span style={{ marginRight: "1em" }}>{name}</span>
+          {...Array.from(items).map((item) => (
+            <Form.Check
+              inline
+              name={name}
+              type="switch"
+              label={item}
+              key={item}
+              checked={group.state[item]}
+              onChange={(e) => onFilterChanged(name, item, e.target.checked)}
+            />
+          ))}
+        </div>,
+      );
     }
   }
 
