@@ -9,17 +9,22 @@ const filterDirective = {
       type: String,
       doc: "List of whitespace-separated categories.",
     },
+    prefix: {
+      type: String,
+      doc: "Prefix for class names indicating group members of the form <prefix><group>-<name>",
+    },
   },
   run(data) {
     const categorical = (data.options.categorical || "")
       .split(/\s+/)
       .filter((item) => !!item);
+    const prefix = data.options.prefix || "flt-";
     return [
       {
         type: "anywidget",
         esm: "/dist/filter.mjs",
         css: "/dist/filter.css",
-        model: { categorical },
+        model: { categorical, prefix },
         children: data.body,
       },
     ];
